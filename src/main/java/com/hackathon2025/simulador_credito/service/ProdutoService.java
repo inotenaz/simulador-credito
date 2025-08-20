@@ -113,28 +113,30 @@ public class ProdutoService {
 
                     saldoDevedorPrice = saldoDevedorPrice.subtract(amortizacaoDaParcela);
                 }
+                
+                Map<String, Object> resposta = new LinkedHashMap<>();
+                resposta.put("codigoProduto", codigoProduto);
+                resposta.put("descricaoProduto", nomeProduto);
+                resposta.put("taxaJuros", taxaJuros.setScale(4, RoundingMode.HALF_UP));
 
-                // Monta o objeto de resposta final com todos os detalhes da simulação
-                return Map.of(
-                    "status", "Cálculo realizado com sucesso",
-                    "valorSolicitado", valorDesejado,
-                    "prazo", prazo,
-                    "produtoSelecionado", Map.of(
-                        "codigo", codigoProduto,
-                        "nome", nomeProduto,
-                        "taxaJuros", taxaJuros
-                    ),
-                    "resultadoSimulacao", List.of(
-                        Map.of(
-                            "tipo", "SAC",
-                            "parcelas", prestacoes
-                        ),
-                        Map.of(
-                            "tipo", "PRICE",
-                            "parcelas", prestacoesPRICE
-                        )
-                    )
-                );
+                // Criando os mapas internos também com LinkedHashMap
+                Map<String, Object> simulacaoSAC = new LinkedHashMap<>();
+                simulacaoSAC.put("tipo", "SAC");
+                simulacaoSAC.put("parcelas", prestacoes);
+
+                Map<String, Object> simulacaoPRICE = new LinkedHashMap<>();
+                simulacaoPRICE.put("tipo", "PRICE");
+                simulacaoPRICE.put("parcelas", prestacoesPRICE);
+
+                // Lista com os dois tipos de simulação
+                List<Map<String, Object>> resultadoSimulacao = new ArrayList<>();
+                resultadoSimulacao.add(simulacaoSAC);
+                resultadoSimulacao.add(simulacaoPRICE);
+
+                resposta.put("resultadoSimulacao", resultadoSimulacao);
+
+                return resposta;
+                
             } else {
                 // Nenhum produto compatível foi encontrado
                 return Map.of("status", "Não elegível",
