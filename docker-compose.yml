@@ -9,9 +9,11 @@ services:
     ports:
       - "8080:8080"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/simulador_credito
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: simulador_credito
+      DB_USER: postgres
+      DB_PASS: postgres
 
   postgres:
     image: postgres:14-alpine

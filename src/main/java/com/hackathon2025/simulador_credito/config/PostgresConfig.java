@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -23,14 +25,26 @@ import com.hackathon2025.simulador_credito.repository.ProdutoRepository;
 )
 public class PostgresConfig {
     
+    @Value("${spring.datasource.url}")
+    private String dbUrl;
+
+    @Value("${spring.datasource.username}")
+    private String dbUser;
+
+    @Value("${spring.datasource.password}")
+    private String dbPass;
+
+    @Value("${spring.datasource.driver-class-name}")
+    private String driverClass;
+
     @Primary
     @Bean
     public DataSource postgresDataSource() {
         return DataSourceBuilder.create()
-            .url("jdbc:postgresql://localhost:5432/simulador_credito")
-            .username("postgres")
-            .password("postgres")
-            .driverClassName("org.postgresql.Driver")
+            .url(dbUrl)
+            .username(dbUser)
+            .password(dbPass)
+            .driverClassName(driverClass)
             .build();
     }
 
