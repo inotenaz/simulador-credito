@@ -50,8 +50,6 @@ public class SimulacaoController {
         simulacao1.setCodigoProduto(1);
         simulacao1.setDescricaoProduto("Crédito Pessoal");
         simulacao1.setTaxaJuros(new BigDecimal("1.5"));
-        simulacao1.setValorTotalParcelasPRICE(new BigDecimal("10800"));
-        simulacao1.setValorTotalParcelasSAC(new BigDecimal("11000"));
         simulacoesSalvas.add(simulacaoService.registrarSimulacao(simulacao1));
 
         // Exemplo 2
@@ -61,8 +59,6 @@ public class SimulacaoController {
         simulacao2.setCodigoProduto(2);
         simulacao2.setDescricaoProduto("Crédito Veicular");
         simulacao2.setTaxaJuros(new BigDecimal("1.8"));
-        simulacao2.setValorTotalParcelasPRICE(new BigDecimal("22800"));
-        simulacao2.setValorTotalParcelasSAC(new BigDecimal("23200"));
         simulacoesSalvas.add(simulacaoService.registrarSimulacao(simulacao2));
 
         // Exemplo 3
@@ -72,8 +68,6 @@ public class SimulacaoController {
         simulacao3.setCodigoProduto(3);
         simulacao3.setDescricaoProduto("Crédito Imobiliário");
         simulacao3.setTaxaJuros(new BigDecimal("2.0"));
-        simulacao3.setValorTotalParcelasPRICE(new BigDecimal("39600"));
-        simulacao3.setValorTotalParcelasSAC(new BigDecimal("40500"));
         simulacoesSalvas.add(simulacaoService.registrarSimulacao(simulacao3));
 
         return ResponseEntity.ok(simulacoesSalvas);

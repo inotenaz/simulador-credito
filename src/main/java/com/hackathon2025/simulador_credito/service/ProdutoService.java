@@ -29,7 +29,7 @@ public class ProdutoService {
         return produtoRepository.findAll();
     }
 
-    public Long salvarSimulacao(Map<String, Object> dados) {
+    public Long salvarSimulacao(Map<String, Object> dados, BigDecimal valorDesejado, Integer prazo) {
         try {
             // Extrair campos principais do Map
             Integer codigoProduto = (Integer) dados.get("codigoProduto");
@@ -59,14 +59,19 @@ public class ProdutoService {
                     mediaPRICE = media;
                 }
             }
-
+            // Calcula a média total
+            BigDecimal mediaTotal = mediaPRICE.add(mediaSAC).divide(new BigDecimal(2), 2, RoundingMode.HALF_UP);
+            // Calcula o valor total das parcelas
+            BigDecimal valorTotalParcelas = mediaTotal.multiply(new BigDecimal(prazo)).setScale(2, RoundingMode.HALF_UP);
             // Monta a entidade Simulacao
             Simulacao simulacao = new Simulacao();
             simulacao.setCodigoProduto(codigoProduto);
             simulacao.setDescricaoProduto(descricaoProduto);
             simulacao.setTaxaJuros(taxaJuros);
-            simulacao.setValorMedioPrestacaoPrice(mediaPRICE);
-            simulacao.setValorMedioPrestacaoSAC(mediaSAC);
+            simulacao.setValorMedioPrestacao(mediaTotal);
+            simulacao.setValorDesejado(valorDesejado);
+            simulacao.setPrazo(prazo);
+            simulacao.setValorTotalParcelas(valorTotalParcelas);
 
             // Se quiser salvar as médias no banco, adicione colunas na tabela e no model
             // simulacao.setMediaSac(mediaSAC);
@@ -193,7 +198,7 @@ public class ProdutoService {
 
                 resposta.put("resultadoSimulacao", resultadoSimulacao);
 
-                Long idSimulacao = salvarSimulacao(resposta);
+                Long idSimulacao = salvarSimulacao(resposta, valorDesejado, prazo);
 
                 Map<String, Object> novaResposta = new LinkedHashMap<>();
                 novaResposta.put("idSimulacao", idSimulacao);

@@ -37,17 +37,11 @@ public class Simulacao {
     @Column(name = "taxa_juros", precision = 8, scale = 4)
     private BigDecimal taxaJuros;
 
-    @Column(name = "valor_medio_prestacao_price", precision = 15, scale = 2)
-    private BigDecimal valorMedioPrestacaoPrice;
+    @Column(name = "valor_medio_prestacao", precision = 15, scale = 2)
+    private BigDecimal valorMedioPrestacao;
 
-    @Column(name = "valor_medio_prestacao_sac", precision = 15, scale = 2)
-    private BigDecimal valorMedioPrestacaoSAC;
-
-    @Column(name = "valor_total_parcelas_price", precision = 15, scale = 2)
-    private BigDecimal valorTotalParcelasPRICE;
-
-    @Column(name = "valor_total_parcelas_sac", precision = 15, scale = 2)
-    private BigDecimal valorTotalParcelasSAC;
+    @Column(name = "valor_total_parcelas", precision = 15, scale = 2)
+    private BigDecimal valorTotalParcelas;
 
     @Column(name = "data_simulacao")
     private LocalDateTime dataSimulacao;
