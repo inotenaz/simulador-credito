@@ -1,21 +1,33 @@
 package com.hackathon2025.simulador_credito.controller;
 
 import com.hackathon2025.simulador_credito.model.Simulacao;
+import com.hackathon2025.simulador_credito.repository.SimulacaoRepository;
 import com.hackathon2025.simulador_credito.service.SimulacaoService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
+import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/simulacoes")
 public class SimulacaoController {
 
     @Autowired
     private SimulacaoService simulacaoService;
+
+    @Autowired
+    private SimulacaoRepository simulacaoRepository;
 
     @PostMapping
     public ResponseEntity<Simulacao> criar(@RequestBody Simulacao simulacao) {
@@ -33,45 +45,105 @@ public class SimulacaoController {
         return ResponseEntity.ok(simulacaoService.buscarPorId(id));
     }
 
+    @GetMapping("/total")
+    public ResponseEntity<Map<String, Object>> listarSimulacoes(
+            @RequestParam(defaultValue = "1") int pagina,
+            @RequestParam(defaultValue = "200") int tamanho_pagina) {
+
+        Pageable pageable = PageRequest.of(pagina - 1, tamanho_pagina, Sort.by("idSimulacao").ascending());
+
+        Page<Simulacao> page = simulacaoRepository.findAll(pageable);
+
+        // Montar lista de registros com os campos desejados
+        List<Map<String, Object>> registros = page.getContent().stream().map(sim -> {
+            Map<String, Object> registro = new LinkedHashMap<>();
+            registro.put("idSimulacao", sim.getIdSimulacao());
+            registro.put("valorDesejado", sim.getValorDesejado());
+            registro.put("prazo", sim.getPrazo());
+            registro.put("valorTotalParcelas", sim.getValorTotalParcelas());
+            return registro;
+        }).toList();
+
+        // Montar resposta
+        Map<String, Object> resposta = new LinkedHashMap<>();
+        resposta.put("pagina", pagina);
+        resposta.put("qtdRegistros", page.getTotalElements());
+        resposta.put("qtdRegistrosPagina", tamanho_pagina);
+        resposta.put("registros", registros);
+
+        return ResponseEntity.ok(resposta);
+    }
+
+    @GetMapping("/resumo")
+    public ResponseEntity<Map<String, Object>> resumoSimulacoes(
+            @RequestParam String data, // formato "yyyy-MM-dd"
+            @RequestParam Integer codigoProduto) {
+
+        try {
+            LocalDate dataReferencia = LocalDate.parse(data);
+
+            // Buscar simulações pelo código do produto e data da simulação (mesmo dia)
+            List<Simulacao> simulacoes = simulacaoRepository.findAll().stream()
+                    .filter(s -> s.getCodigoProduto().equals(codigoProduto)
+                            && s.getDataSimulacao().toLocalDate().equals(dataReferencia))
+                    .toList();
+
+            if (simulacoes.isEmpty()) {
+                return ResponseEntity.ok(Map.of(
+                        "dataReferencia", data,
+                        "simulacoes", List.of()
+                ));
+            }
+
+            // Pega a descricaoProduto de qualquer registro
+            String descricaoProduto = simulacoes.get(0).getDescricaoProduto();
+
+            // Calcula valores agregados
+            BigDecimal taxaMediaJuro = simulacoes.stream()
+                    .map(Simulacao::getTaxaJuros)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    .divide(new BigDecimal(simulacoes.size()), 4, RoundingMode.HALF_UP);
+
+            BigDecimal valorMedioPrestacao = simulacoes.stream()
+                    .map(Simulacao::getValorMedioPrestacao)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add)
+                    .divide(new BigDecimal(simulacoes.size()), 2, RoundingMode.HALF_UP);
+
+            BigDecimal valorTotalDesejado = simulacoes.stream()
+                    .map(Simulacao::getValorDesejado)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            BigDecimal valorTotalCredito = simulacoes.stream()
+                    .map(Simulacao::getValorTotalParcelas)
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+            // Monta objeto do JSON
+            Map<String, Object> resumo = new LinkedHashMap<>();
+            resumo.put("codigoProduto", codigoProduto);
+            resumo.put("descricaoProduto", descricaoProduto);
+            resumo.put("taxaMediaJuro", taxaMediaJuro);
+            resumo.put("valorMedioPrestacao", valorMedioPrestacao);
+            resumo.put("valorTotalDesejado", valorTotalDesejado);
+            resumo.put("valorTotalCredito", valorTotalCredito);
+
+            Map<String, Object> resposta = new LinkedHashMap<>();
+            resposta.put("dataReferencia", data);
+            resposta.put("simulacoes", List.of(resumo));
+
+            return ResponseEntity.ok(resposta);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("erro", e.getMessage()));
+        }
+    }
+
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         simulacaoService.deletar(id);
         return ResponseEntity.noContent().build();
     }
-    
-    @GetMapping("/cadastrargeral")
-    public ResponseEntity<List<Simulacao>> cadastrarExemplos() {
-        List<Simulacao> simulacoesSalvas = new ArrayList<>();
-
-        // Exemplo 1
-        Simulacao simulacao1 = new Simulacao();
-        simulacao1.setValorDesejado(new BigDecimal("10000"));
-        simulacao1.setPrazo(12);
-        simulacao1.setCodigoProduto(1);
-        simulacao1.setDescricaoProduto("Crédito Pessoal");
-        simulacao1.setTaxaJuros(new BigDecimal("1.5"));
-        simulacoesSalvas.add(simulacaoService.registrarSimulacao(simulacao1));
-
-        // Exemplo 2
-        Simulacao simulacao2 = new Simulacao();
-        simulacao2.setValorDesejado(new BigDecimal("20000"));
-        simulacao2.setPrazo(24);
-        simulacao2.setCodigoProduto(2);
-        simulacao2.setDescricaoProduto("Crédito Veicular");
-        simulacao2.setTaxaJuros(new BigDecimal("1.8"));
-        simulacoesSalvas.add(simulacaoService.registrarSimulacao(simulacao2));
-
-        // Exemplo 3
-        Simulacao simulacao3 = new Simulacao();
-        simulacao3.setValorDesejado(new BigDecimal("30000"));
-        simulacao3.setPrazo(36);
-        simulacao3.setCodigoProduto(3);
-        simulacao3.setDescricaoProduto("Crédito Imobiliário");
-        simulacao3.setTaxaJuros(new BigDecimal("2.0"));
-        simulacoesSalvas.add(simulacaoService.registrarSimulacao(simulacao3));
-
-        return ResponseEntity.ok(simulacoesSalvas);
-    }
-
 
 }

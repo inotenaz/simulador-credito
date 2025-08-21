@@ -73,10 +73,6 @@ public class ProdutoService {
             simulacao.setPrazo(prazo);
             simulacao.setValorTotalParcelas(valorTotalParcelas);
 
-            // Se quiser salvar as médias no banco, adicione colunas na tabela e no model
-            // simulacao.setMediaSac(mediaSAC);
-            // simulacao.setMediaPrice(mediaPRICE);
-
             simulacaoRepository.save(simulacao);
             return simulacao.getIdSimulacao();
 
@@ -203,7 +199,6 @@ public class ProdutoService {
                 Map<String, Object> novaResposta = new LinkedHashMap<>();
                 novaResposta.put("idSimulacao", idSimulacao);
                 novaResposta.putAll(resposta); 
-
                 resposta = novaResposta;
 
                 return resposta;
@@ -214,7 +209,6 @@ public class ProdutoService {
                               "mensagem", "Nenhum produto de crédito encontrado para o valor e prazo solicitados.");
             }
         } catch (Exception e) {
-            e.printStackTrace(); // Idealmente, usar um logger como SLF4J
             return Map.of("status", "Erro", "mensagem", "Ocorreu um erro inesperado ao processar sua solicitação.");
         }
     }
