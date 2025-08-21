@@ -11,7 +11,9 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.hackathon2025.simulador_credito.model.Simulacao;
 import com.hackathon2025.simulador_credito.repository.ProdutoRepository;
+import com.hackathon2025.simulador_credito.repository.SimulacaoRepository;
 
 @Service
 public class ProdutoService {
@@ -19,9 +21,65 @@ public class ProdutoService {
     @Autowired
     private ProdutoRepository produtoRepository;
 
+    @Autowired
+    private SimulacaoRepository simulacaoRepository;
+
+
     public List<Map<String, Object>> listarTodos() {
         return produtoRepository.findAll();
     }
+
+    public Long salvarSimulacao(Map<String, Object> dados) {
+        try {
+            // Extrair campos principais do Map
+            Integer codigoProduto = (Integer) dados.get("codigoProduto");
+            String descricaoProduto = (String) dados.get("descricaoProduto");
+            BigDecimal taxaJuros = new BigDecimal(dados.get("taxaJuros").toString());
+
+            // Extrair lista resultadoSimulacao
+            List<Map<String, Object>> resultadoSimulacao = (List<Map<String, Object>>) dados.get("resultadoSimulacao");
+            BigDecimal mediaSAC = BigDecimal.ZERO;
+            BigDecimal mediaPRICE = BigDecimal.ZERO;
+
+            for (Map<String, Object> simulacaoTipo : resultadoSimulacao) {
+                String tipo = (String) simulacaoTipo.get("tipo");
+                List<Map<String, Object>> parcelas = (List<Map<String, Object>>) simulacaoTipo.get("parcelas");
+
+                BigDecimal soma = BigDecimal.ZERO;
+                for (Map<String, Object> parcela : parcelas) {
+                    BigDecimal valorPrestacao = new BigDecimal(parcela.get("valorPrestacao").toString());
+                    soma = soma.add(valorPrestacao);
+                }
+
+                BigDecimal media = soma.divide(new BigDecimal(parcelas.size()), 2, RoundingMode.HALF_UP);
+
+                if ("SAC".equalsIgnoreCase(tipo)) {
+                    mediaSAC = media;
+                } else if ("PRICE".equalsIgnoreCase(tipo)) {
+                    mediaPRICE = media;
+                }
+            }
+
+            // Monta a entidade Simulacao
+            Simulacao simulacao = new Simulacao();
+            simulacao.setCodigoProduto(codigoProduto);
+            simulacao.setDescricaoProduto(descricaoProduto);
+            simulacao.setTaxaJuros(taxaJuros);
+            simulacao.setValorMedioPrestacaoPrice(mediaPRICE);
+            simulacao.setValorMedioPrestacaoSAC(mediaSAC);
+
+            // Se quiser salvar as médias no banco, adicione colunas na tabela e no model
+            // simulacao.setMediaSac(mediaSAC);
+            // simulacao.setMediaPrice(mediaPRICE);
+
+            simulacaoRepository.save(simulacao);
+            return simulacao.getIdSimulacao();
+
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
 
     public Object realizaCalculo(BigDecimal valorDesejado, Integer prazo) {
         try {
@@ -135,8 +193,16 @@ public class ProdutoService {
 
                 resposta.put("resultadoSimulacao", resultadoSimulacao);
 
+                Long idSimulacao = salvarSimulacao(resposta);
+
+                Map<String, Object> novaResposta = new LinkedHashMap<>();
+                novaResposta.put("idSimulacao", idSimulacao);
+                novaResposta.putAll(resposta); 
+
+                resposta = novaResposta;
+
                 return resposta;
-                
+
             } else {
                 // Nenhum produto compatível foi encontrado
                 return Map.of("status", "Não elegível",

@@ -22,28 +22,31 @@ public class Simulacao {
     @Column(name = "id_simulacao", nullable = false, updatable = false)
     private Long idSimulacao;
 
-    @Column(name = "valor_desejado", precision = 15, scale = 2, nullable = false)
+    @Column(name = "valor_desejado", precision = 15, scale = 2)
     private BigDecimal valorDesejado;
 
-    @Column(name = "prazo", nullable = false)
-    private Integer prazo; 
+    @Column(name = "prazo")
+    private Integer prazo;
 
-    @Column(name = "codigo_produto", nullable = false)
+    @Column(name = "codigo_produto")
     private Integer codigoProduto;
 
-    @Column(name = "descricao_produto", length = 200, nullable = false)
+    @Column(name = "descricao_produto", length = 200)
     private String descricaoProduto;
 
-    @Column(name = "taxa_juros", precision = 8, scale = 4, nullable = false)
+    @Column(name = "taxa_juros", precision = 8, scale = 4)
     private BigDecimal taxaJuros;
 
-    @Column(name = "valor_medio_prestacao", precision = 15, scale = 2, nullable = false)
-    private BigDecimal valorMedioPrestacao;
+    @Column(name = "valor_medio_prestacao_price", precision = 15, scale = 2)
+    private BigDecimal valorMedioPrestacaoPrice;
 
-    @Column(name = "valor_total_parcelas_price", precision = 15, scale = 2, nullable = false)
+    @Column(name = "valor_medio_prestacao_sac", precision = 15, scale = 2)
+    private BigDecimal valorMedioPrestacaoSAC;
+
+    @Column(name = "valor_total_parcelas_price", precision = 15, scale = 2)
     private BigDecimal valorTotalParcelasPRICE;
 
-    @Column(name = "valor_total_parcelas_sac", precision = 15, scale = 2, nullable = false)
+    @Column(name = "valor_total_parcelas_sac", precision = 15, scale = 2)
     private BigDecimal valorTotalParcelasSAC;
 
     @Column(name = "data_simulacao")
