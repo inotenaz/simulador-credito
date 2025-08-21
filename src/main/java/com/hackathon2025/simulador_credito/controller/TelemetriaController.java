@@ -17,6 +17,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.hackathon2025.simulador_credito.model.Telemetria;
 import com.hackathon2025.simulador_credito.repository.TelemetriaRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+
 @RestController
 @RequestMapping("/telemetria")
 public class TelemetriaController {
@@ -24,9 +27,10 @@ public class TelemetriaController {
     @Autowired
     private TelemetriaRepository telemetriaRepository;
 
+    @Operation(summary = "Resumo de telemetria por data", description = "Retorna estatísticas de execução por endpoint para uma data específica (ex.: número de requisições, tempos e percentual de sucesso).")
     @GetMapping("/resumo")
     public ResponseEntity<Map<String, Object>> resumoTelemetria(
-            @RequestParam String data) {
+            @Parameter(description = "Data no formato yyyy-MM-dd", required = true, example = "2025-08-21") @RequestParam String data) {
 
         LocalDate dataReferencia = LocalDate.parse(data);
 

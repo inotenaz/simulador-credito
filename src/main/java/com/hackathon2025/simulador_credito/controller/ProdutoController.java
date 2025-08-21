@@ -10,17 +10,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hackathon2025.simulador_credito.service.ProdutoService;
 
+import io.swagger.v3.oas.annotations.Operation;
+
 @RestController
 @RequestMapping("/produtos-credito")
 public class ProdutoController {
 
     @Autowired
     private ProdutoService produtoService;
-    
-    /**
-     * Retorna uma lista de todos os produtos de crédito disponíveis, com as faixas de valores e numero de prestações.
-     * @return Uma lista de mapas, onde cada mapa representa um produto de crédito.
-     */
+
+    @Operation(summary = "Lista todos os produtos de crédito disponíveis", description = "Retorna uma lista de produtos de crédito com suas faixas de valores e número de prestações.")
     @GetMapping
     public List<Map<String, Object>> listar() {
         return produtoService.listarTodos();

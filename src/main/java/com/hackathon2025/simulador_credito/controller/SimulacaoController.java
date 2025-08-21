@@ -1,6 +1,12 @@
 package com.hackathon2025.simulador_credito.controller;
 
 import com.hackathon2025.simulador_credito.service.SimulacaoService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +22,7 @@ public class SimulacaoController {
     @Autowired
     private SimulacaoService simulacaoService;
 
+    @Operation(summary = "Simula crédito", description = "Recebe valor desejado e prazo e retorna o resultado da simulação.", requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(description = "Payload contendo valorDesejado e prazo", required = true, content = @Content(mediaType = "application/json", schema = @Schema(example = "{ \"valorDesejado\": 1000.00, \"prazo\": 12 }"))))
     @PostMapping("/simular")
     public ResponseEntity<Object> simularCredito(@RequestBody Map<String, Object> payload) {
         try {
@@ -44,10 +51,11 @@ public class SimulacaoController {
         }
     }
 
+    @Operation(summary = "Listar simulações", description = "Retorna uma lista paginada de simulações realizadas.")
     @GetMapping("/total")
     public ResponseEntity<Map<String, Object>> listarSimulacoes(
-            @RequestParam(defaultValue = "1") int pagina,
-            @RequestParam(defaultValue = "200") int tamanho_pagina) {
+            @Parameter(description = "Número da página") @RequestParam(defaultValue = "1") int pagina,
+            @Parameter(description = "Quantidade de registros por página") @RequestParam(defaultValue = "200") int tamanho_pagina) {
 
         Map<String, Object> resultado = simulacaoService.listarSimulacoes(pagina, tamanho_pagina);
 
@@ -60,16 +68,18 @@ public class SimulacaoController {
         }
     }
 
+    @Operation(summary = "Resumo das simulações", description = "Retorna o resumo das simulações realizadas para uma data e código de produto específicos.")
     @GetMapping("/resumo")
     public ResponseEntity<Map<String, Object>> resumoSimulacoes(
-            @RequestParam String data, // formato "yyyy-MM-dd"
-            @RequestParam Integer codigoProduto) {
+            @Parameter(description = "Data no formato yyyy-MM-dd", example = "2025-08-21") @RequestParam String data,
+            @Parameter(description = "Código do produto", example = "123") @RequestParam Integer codigoProduto) {
 
         Map<String, Object> resultado = simulacaoService.resumoSimulacoes(data, codigoProduto);
 
         if (resultado == null) {
             // Retorna 500 Internal Server Error se houve problema
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("status", "Erro", "mensagem", "Ocorreu um erro ao obter o resumo das simulações."));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("status", "Erro", "mensagem", "Ocorreu um erro ao obter o resumo das simulações."));
         }
         return ResponseEntity.ok(resultado);
     }
