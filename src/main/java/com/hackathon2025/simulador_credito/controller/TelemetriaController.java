@@ -1,7 +1,5 @@
 package com.hackathon2025.simulador_credito.controller;
 
-import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
